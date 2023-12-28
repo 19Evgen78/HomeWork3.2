@@ -1,91 +1,74 @@
 package pro.sky.java.cource3.ru.hogwarts.school.services;
 
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import pro.sky.java.cource3.ru.hogwarts.school.model.Faculty;
 
-import java.util.List;
+import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class FacultyServiceTest {
-    private FacultyService facultyService;
-
-    @Before
-    public void setUp() {
-        facultyService = new FacultyService();
-    }
-
     @Test
-    public void testCreateFaculty() {
-        Faculty faculty = new Faculty(1L, "Doe","Blue");
-        Faculty createdFaculty = facultyService.createFaculty(faculty);
+    public void testAddFaculty() {
+        FacultyService facultyService = new FacultyService();
 
-        assertNotNull(createdFaculty);
-        assertNotNull(createdFaculty.getId());
-        assertEquals(faculty.getName(), createdFaculty.getName());
-        assertEquals(faculty.getColor(), createdFaculty.getColor());
+        Faculty faculty = new Faculty(1, "hogwart","red");
+
+        facultyService.addFaculty(faculty);
+        assertEquals(faculty, facultyService.findFaculty(faculty.getId()));
     }
 
     @Test
     public void testFindFaculty() {
-        Faculty faculty = new Faculty(1L, "Doe","Blue");
-        Faculty createdFaculty = facultyService.createFaculty(faculty);
+        FacultyService facultyService = new FacultyService();
 
-        Faculty foundFaculty = facultyService.findFaculty(createdFaculty.getId());
+        Faculty faculty = new Faculty(1, "hogwart","red");
 
-        assertNotNull(foundFaculty);
-        assertEquals(createdFaculty.getId(), foundFaculty.getId());
-        assertEquals(createdFaculty.getName(), foundFaculty.getName());
-        assertEquals(createdFaculty.getColor(), foundFaculty.getColor());
+        facultyService.addFaculty(faculty);
+        assertEquals(faculty, facultyService.findFaculty(faculty.getId()));
     }
 
     @Test
     public void testEditFaculty() {
-        Faculty faculty = new Faculty(1L, "Doe","Blue");
-        Faculty createdFaculty = facultyService.createFaculty(faculty);
+        FacultyService facultyService = new FacultyService();
 
-        createdFaculty.setColor("Red");
+        Faculty faculty = new Faculty(1, "hogwart","red");
 
-        Faculty editedFaculty = facultyService.editFaculty(createdFaculty);
+        facultyService.addFaculty(faculty);
+        faculty.setColor("blue");
 
-        assertNotNull(editedFaculty);
-        assertEquals(createdFaculty.getId(), editedFaculty.getId());
-        assertEquals(createdFaculty.getName(), editedFaculty.getName());
-        assertEquals(createdFaculty.getColor(), editedFaculty.getColor());
+        Faculty editedFaculty = facultyService.editFaculty(faculty);
+        assertEquals(editedFaculty, facultyService.findFaculty(faculty.getId()));
+        assertEquals("blue", editedFaculty.getColor());
     }
 
     @Test
     public void testDeleteFaculty() {
-        Faculty faculty = new Faculty(1L, "Doe","Blue");
-        Faculty createdFaculty = facultyService.createFaculty(faculty);
+        FacultyService facultyService = new FacultyService();
 
-        Faculty deletedFaculty = facultyService.deletFaculty(createdFaculty.getId());
+        Faculty faculty = new Faculty(1, "hogwart","red");
 
-        assertNotNull(deletedFaculty);
-        assertEquals(createdFaculty.getId(), deletedFaculty.getId());
-        assertEquals(createdFaculty.getName(), deletedFaculty.getName());
-        assertEquals(createdFaculty.getColor(), deletedFaculty.getColor());
-
-        Faculty foundFaculty = facultyService.findFaculty(createdFaculty.getId());
-        assertNull(foundFaculty);
+        facultyService.addFaculty(faculty);
+        facultyService.deleteFaculty(faculty.getId());
+        assertNull(facultyService.findFaculty(faculty.getId()));
     }
 
     @Test
     public void testFindByColor() {
-        Faculty faculty1 = new Faculty(1L, "Doe","Blue");
-        Faculty faculty2 = new Faculty(2L, "Smith","Red");
-        Faculty faculty3 = new Faculty(3L, "Johnson","Blue");
+        FacultyService facultyService = new FacultyService();
 
-        facultyService.createFaculty(faculty1);
-        facultyService.createFaculty(faculty2);
-        facultyService.createFaculty(faculty3);
+        Faculty faculty1 = new Faculty(1, "hogwart","red");
+        Faculty faculty2 = new Faculty(2,"math","blue");
+        Faculty faculty3 = new Faculty(3,"phizikc","red");
 
-        List<Faculty> foundFaculties = facultyService.findByColor("Blue");
+        facultyService.addFaculty(faculty1);
+        facultyService.addFaculty(faculty2);
+        facultyService.addFaculty(faculty3);
 
-        assertEquals(2, foundFaculties.size());
-        assertTrue(foundFaculties.contains(faculty1));
-        assertFalse(foundFaculties.contains(faculty2));
-        assertTrue(foundFaculties.contains(faculty3));
+        Collection<Faculty> faculties = facultyService.findByColor("red");
+
+        assertEquals(2, faculties.size());
+        assertTrue(faculties.contains(faculty1));
+        assertTrue(faculties.contains(faculty3));
     }
 }

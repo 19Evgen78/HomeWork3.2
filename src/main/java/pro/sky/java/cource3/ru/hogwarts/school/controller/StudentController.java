@@ -7,9 +7,9 @@ import pro.sky.java.cource3.ru.hogwarts.school.model.Student;
 import pro.sky.java.cource3.ru.hogwarts.school.services.StudentService;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 @RestController
-@RequestMapping("students")
+@RequestMapping("/students")
 public class StudentController {
     private final StudentService studentService;
 
@@ -17,13 +17,8 @@ public class StudentController {
         this.studentService = studentService;
     }
 
-    @PostMapping
-    public Student createStudent(@RequestBody Student student) {
-        return StudentService.createStudent(student);
-    }
-
     @GetMapping("{id}")
-    public ResponseEntity<Student> getStudentInfo(@PathVariable long id) {
+    public ResponseEntity<Student> getStudentInfo(@PathVariable Long id) {
         Student student = studentService.findStudent(id);
         if (student == null) {
             return ResponseEntity.notFound().build();
@@ -31,10 +26,9 @@ public class StudentController {
         return ResponseEntity.ok(student);
     }
 
-    @GetMapping
-    public ResponseEntity<Collection<Student>> getAllStudents() {
-
-        return ResponseEntity.ok(studentService.getAllStudents());
+    @PostMapping
+    public Student createStudent(@RequestBody Student student) {
+        return studentService.addStudent(student);
     }
 
     @PutMapping
@@ -47,12 +41,15 @@ public class StudentController {
     }
 
     @DeleteMapping("{id}")
-    public Student deleteStudent(@PathVariable Long id) {
-        return studentService.deletStudent(id);
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+        studentService.deleteStudent(id);
+        return ResponseEntity.ok().build();
     }
-
-    @GetMapping("/age/{age}")
-    public List<Student> filterStudentByAge(@PathVariable int age) {
-        return studentService.findByAge(age);
+    @GetMapping
+    public ResponseEntity<Collection<Student>> findStudents(@RequestParam(required = false) int age) {
+        if (age > 0) {
+            return ResponseEntity.ok(studentService.findByAge(age));
+        }
+        return ResponseEntity.ok(Collections.emptyList());
     }
 }
