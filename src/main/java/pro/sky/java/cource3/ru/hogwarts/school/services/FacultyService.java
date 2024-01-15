@@ -14,24 +14,46 @@ public class FacultyService {
         this.facultyRepository = facultyRepository;
     }
 
-
-    public Faculty createFaculty(Faculty faculty) {
-        return facultyRepository.save(faculty);
+    public Faculty create(Faculty faculty) {
+        facultyRepository.save(faculty);
+        return faculty;
     }
 
-    public Faculty getFaculty(long id) {
-        return facultyRepository.findById(id).get();
+    public Faculty delete(Long id) {
+        Optional<Faculty> faculty = facultyRepository.findById(id);
+        if (faculty.isPresent()) {
+            facultyRepository.deleteById(id);
+            return faculty.get();
+        }
+        return null;
     }
 
-    public Faculty updateFaculty(Faculty faculty) {
-        return facultyRepository.save(faculty);
+    public Faculty update(Faculty faculty) {
+        Long id = faculty.getId();
+        Optional<Faculty> faculty1 = facultyRepository.findById(id);
+        if (faculty1.isPresent()) {
+            facultyRepository.save(faculty);
+            return faculty1.get();
+        }
+        return null;
     }
 
-    public void deleteFaculty(long id) {
-        facultyRepository.deleteById(id);
+    public Faculty read(long id) {
+        Faculty faculty = facultyRepository.getReferenceById(id);
+        return faculty;
+
     }
 
-    public List<Faculty> filterByColor(String color) {
-        return facultyRepository.findAllByColor(color);
+    public Collection<Faculty> getAll() {
+        return facultyRepository.findAll();
+    }
+
+
+    public Collection<Faculty> findByColor(String color) {
+        return facultyRepository.findByColor(color);
+    }
+
+    public Collection<Faculty> findByColorOrNameIgnoreCase(String colorOrName) {
+        return facultyRepository.ByColorOrNameIgnoreCase(colorOrName);
     }
 }
