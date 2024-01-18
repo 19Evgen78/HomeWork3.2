@@ -1,11 +1,15 @@
 package pro.sky.java.cource3.ru.hogwarts.school.model;
 
-import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@Setter
+@Getter
 public class Faculty {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -64,7 +64,7 @@ public class FacultyController {
     }
 
     @GetMapping("/findColor/{colorOrName}")
-    public ResponseEntity<Collection<Faculty>> getFacultyByColorOrNameIgnoreCase(@PathVariable String colorOrName) {
-        return ResponseEntity.ok(facultyService.findByColorOrNameIgnoreCase(colorOrName));
+    public ResponseEntity<Collection<Faculty>> getFacultyByColorOrNameIgnoreCase(@PathVariable String color, @PathVariable String name) {
+        return ResponseEntity.ok(facultyService.findByColorOrNameIgnoreCase(color, name));
     }
 }

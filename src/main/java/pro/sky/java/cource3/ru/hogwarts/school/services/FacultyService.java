@@ -53,7 +53,7 @@ public class FacultyService {
         return facultyRepository.findByColor(color);
     }
 
-    public Collection<Faculty> findByColorOrNameIgnoreCase(String colorOrName) {
-        return facultyRepository.ByColorOrNameIgnoreCase(colorOrName);
+    public Collection<Faculty> findByColorOrNameIgnoreCase(String color, String name) {
+        return facultyRepository.findByColorOrNameIgnoreCase(color,name);
     }
 }
