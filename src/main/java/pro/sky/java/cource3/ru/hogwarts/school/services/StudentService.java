@@ -59,4 +59,8 @@ public class StudentService {
             return null;
         }
     }
+
+    public Student findById(Long studentId) {
+        return null;
+    }
 }

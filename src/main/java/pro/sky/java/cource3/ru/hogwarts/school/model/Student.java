@@ -1,5 +1,7 @@
 package pro.sky.java.cource3.ru.hogwarts.school.model;
-import javax.persistence.*;
+
+import jakarta.persistence.*;
+
 import java.util.Objects;
 @Entity
 public class Student {
