@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pro.sky.java.cource3.ru.hogwarts.school.model.Faculty;
+import pro.sky.java.cource3.ru.hogwarts.school.model.Student;
 import pro.sky.java.cource3.ru.hogwarts.school.services.FacultyService;
 
 import java.util.Collection;
@@ -14,55 +15,63 @@ import java.util.Collection;
 public class FacultyController {
     private final FacultyService facultyService;
 
-    @Autowired
     public FacultyController(FacultyService facultyService) {
         this.facultyService = facultyService;
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Faculty> getFacultyInfo(@PathVariable Long id) {
-        Faculty faculty = facultyService.read(id);
-        if (faculty == null) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<Faculty> findStudent(@PathVariable long id) {
+        Faculty foundedFaculty = facultyService.findFaculty(id);
+        if (foundedFaculty == null) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(faculty);
-    }
-
-    @GetMapping
-    public ResponseEntity<Collection<Faculty>> getAllFaculty() {
-        return ResponseEntity.ok(facultyService.getAll());
+        return ResponseEntity.ok(foundedFaculty);
     }
 
     @PostMapping
-    public Faculty createFaculty(@RequestBody Faculty faculty) {
-        return facultyService.create(faculty);
+    public Faculty createStudent(@RequestBody Faculty faculty) {
+        return facultyService.createFaculty(faculty);
     }
 
     @PutMapping
-    public ResponseEntity<Faculty> editFaculty(@RequestBody Faculty faculty) {
-        Faculty faculty1 = facultyService.update(faculty);
-        if (faculty1 == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<Faculty> editStudent(@RequestBody Faculty faculty) {
+        Faculty editedFaculty = facultyService.updateFaculty(faculty);
+        if (faculty == null) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(faculty1);
+        return ResponseEntity.ok(editedFaculty);
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Faculty> deleteStudent(@PathVariable Long id) {
-        Faculty faculty1 = facultyService.delete(id);
-        if (faculty1 == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<Void> deleteFaculty(@PathVariable long id) {
+        facultyService.deleteFaculty(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/findByColorOrName")
+    public ResponseEntity<Faculty> findFacultyByColorOrName(@RequestParam(required = false) String name,
+                                                            @RequestParam(required = false) String color) {
+        if (name != null && !name.isBlank()) {
+            return ResponseEntity.ok(facultyService.findByName(name));
         }
-        return ResponseEntity.ok(faculty1);
+        if (color != null && !color.isBlank()) {
+            return ResponseEntity.ok(facultyService.findByColor(color));
+        }
+        return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/findColor/{color}")
-    public ResponseEntity<Collection<Faculty>> getFacultyByColor(@PathVariable String color) {
-        return ResponseEntity.ok(facultyService.findByColor(color));
+    @GetMapping("/studentsOfFaculty/{facultyId}")
+    public ResponseEntity<Collection<Student>> getStudentsOfFaculty(@PathVariable long facultyId) {
+        Collection<Student> students = facultyService.getStudentsOfFaculty(facultyId);
+        if (!students.isEmpty()) {
+            return ResponseEntity.ok(students);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @GetMapping("/findColor/{colorOrName}")
-    public ResponseEntity<Collection<Faculty>> getFacultyByColorOrNameIgnoreCase(@PathVariable String color, @PathVariable String name) {
-        return ResponseEntity.ok(facultyService.findByColorOrNameIgnoreCase(color, name));
+    @GetMapping("/colorFilter/{color}")
+    public Collection<Faculty> colorFilteredFaculties(@PathVariable String color) {
+        return facultyService.filterColor(color);
     }
 }

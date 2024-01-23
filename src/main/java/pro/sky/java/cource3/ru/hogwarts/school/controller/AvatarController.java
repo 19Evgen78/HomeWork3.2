@@ -20,37 +20,54 @@ import java.nio.file.Path;
 @RequestMapping(path = "/avatar")
 public class AvatarController {
     private final AvatarService avatarService;
-    public AvatarController(AvatarService avatarService){
+
+    public AvatarController(AvatarService avatarService) {
         this.avatarService = avatarService;
     }
 
     @PostMapping(value = "/{studentId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadAvatar(@PathVariable long studentId,
-                                               @RequestParam MultipartFile avatar)
-            throws IOException {
-        if (avatar.getSize() > 1024*300) {
-            return ResponseEntity.badRequest().body("File is too big");
-        }
-        avatarService.uploadAvatar(studentId,avatar);
+    public ResponseEntity<String> uploadAvatar
+            (@PathVariable long studentId, @RequestParam MultipartFile avatar) throws IOException {
+        avatarService.uploadAvatar(studentId, avatar);
         return ResponseEntity.ok().build();
     }
-    @GetMapping(value = "/{id}/avatar_from_DB")
-    public ResponseEntity<byte[]> downloadAvatar(@PathVariable long id){
-        Avatar avatar = avatarService.findAvatar(id);
+
+    @GetMapping("/avatar-preview/{studentId}")
+    public ResponseEntity<byte[]> downloadPreview(@PathVariable Long studentId) {
+        Avatar preview = avatarService.findAvatar(studentId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentLength(preview.getData().length);
+        headers.setContentType(MediaType.parseMediaType(preview.getMediaType()));
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(preview.getData());
+    }
+
+    @GetMapping("/avatar-from-db/{studentId}")
+    public ResponseEntity<byte[]> downloadAvatar(@PathVariable Long studentId) {
+        Avatar avatar = avatarService.findAvatar(studentId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(avatar.getMediaType()));
-        headers.setContentLength(avatar.getFileSize());
-        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(avatar.getAvatar());
+        headers.setContentLength(avatar.getData().length);
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(avatar.getData());
     }
-    @GetMapping(value = "/{id}/avatar_from_file")
-    public void downloadAvatar(@PathVariable Long id, HttpServletResponse response) throws IOException{
-        Avatar avatar = avatarService.findAvatar(id);
+
+    @GetMapping("avatar-from-file/{studentId}")
+    public void downloadAvatar(@PathVariable Long studentId, HttpServletResponse response) throws IOException {
+        Avatar avatar = avatarService.findAvatar(studentId);
         Path path = Path.of(avatar.getFilePath());
-        try(InputStream is = Files.newInputStream(path);
-            OutputStream os = response.getOutputStream();) {
+        try (InputStream is = Files.newInputStream(path);
+             OutputStream os = response.getOutputStream();) {
+            response.setStatus(200);
             response.setContentType(avatar.getMediaType());
-            response.setContentLength((int) avatar.getFileSize());
+            response.setContentLength((int)avatar.getFileSize());
             is.transferTo(os);
         }
     }
+
+    @DeleteMapping("/deleteAvatar/{studentId}")
+    public ResponseEntity<Void> deleteAvatar(@PathVariable long studentId) {
+        if (avatarService.findAvatar(studentId).getData()!=null) {
+            avatarService.deleteAvatar(studentId);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();}
 }

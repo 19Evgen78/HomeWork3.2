@@ -1,6 +1,6 @@
 package pro.sky.java.cource3.ru.hogwarts.school.services;
-
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -8,51 +8,69 @@ import pro.sky.java.cource3.ru.hogwarts.school.model.Avatar;
 import pro.sky.java.cource3.ru.hogwarts.school.model.Student;
 import pro.sky.java.cource3.ru.hogwarts.school.repositories.AvatarRepository;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
-
 @Service
 @Transactional
 public class AvatarService {
-    @Value("${students.avatars.dir.path}")
+    @Value("${path.to.avatars.folder}")
     private String avatarDir;
     private final StudentService studentService;
     private final AvatarRepository avatarRepository;
-
-    public AvatarService(StudentService studentService, AvatarRepository avatarRepository) {
-        this.studentService = studentService;
+    @Autowired
+    public AvatarService(AvatarRepository avatarRepository, StudentService studentService) {
         this.avatarRepository = avatarRepository;
+        this.studentService = studentService;
     }
-    public void uploadAvatar(Long studentId, MultipartFile file)throws IOException {
-        Student student = studentService.findById(studentId);
-        Path filePath = Path.of(avatarDir,student  + "."
-                + getExtension(file.getOriginalFilename()));
+    public void uploadAvatar(Long studentId, MultipartFile file) throws IOException {
+        Student student = studentService.findStudent(studentId);
+        Path filePath = Path.of(avatarDir, student.getName() + "." + getExtension(Objects.requireNonNull(file.getOriginalFilename())));
         Files.createDirectories(filePath.getParent());
         Files.deleteIfExists(filePath);
-        try (BufferedInputStream bis = new BufferedInputStream
-                (file.getInputStream(),1024);
-             BufferedOutputStream bos = new BufferedOutputStream
-                     (Files.newOutputStream(filePath,CREATE_NEW),1024);
-        ){
+        try (
+                InputStream io = file.getInputStream();
+                OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
+                BufferedInputStream bis = new BufferedInputStream(io, 1024);
+                BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
+        ) {
             bis.transferTo(bos);
         }
         Avatar avatar = findAvatar(studentId);
         avatar.setStudent(student);
-        avatar.setFilePath(String.valueOf(filePath));
+        avatar.setFilePath(filePath.toString());
+        avatar.setData(file.getBytes());
         avatar.setFileSize(file.getSize());
         avatar.setMediaType(file.getContentType());
-        avatar.setAvatar(file.getBytes());
+        avatar.setData(generateImagePreview(filePath));
         avatarRepository.save(avatar);
     }
-    public Avatar findAvatar(Long student_id){
-        if (avatarRepository.findByStudentId(student_id) != null){
-            return avatarRepository.findByStudentId(student_id);}
-        return new Avatar();
+    public void deleteAvatar(long studentId) {
+        avatarRepository.deleteByStudentId(studentId);
+    }
+    public Avatar findAvatar(long studentId) {
+        return avatarRepository.findByStudentId(studentId).orElse(new Avatar());
+    }
+    private byte[] generateImagePreview(Path filePath) throws IOException {
+        try (InputStream is = Files.newInputStream(filePath);
+             BufferedInputStream bis = new BufferedInputStream(is, 1024);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            BufferedImage image = ImageIO.read(bis);
+            int high = image.getHeight() / (image.getWidth() / 100);
+            BufferedImage preview = new BufferedImage(100, high, image.getType());
+            Graphics2D graphics = preview.createGraphics();
+            graphics.drawImage(image, 0, 0, 100, high, null);
+            graphics.dispose();
+
+            ImageIO.write(preview, getExtension(filePath.getFileName().toString()), baos);
+            return baos.toByteArray();
+        }
     }
     private String getExtension(String filename) {
         return filename.substring(filename.lastIndexOf(".") + 1);
