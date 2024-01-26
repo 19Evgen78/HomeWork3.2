@@ -10,32 +10,47 @@ import java.util.stream.Collectors;
 @Service
 public class FacultyService {
     private final FacultyRepository facultyRepository;
+
     @Autowired
     public FacultyService(FacultyRepository facultyRepository) {
         this.facultyRepository = facultyRepository;
     }
+
     public Faculty createFaculty(Faculty faculty) {
         return facultyRepository.save(faculty);
     }
+
     public Faculty findFaculty(Long id) {
-        return facultyRepository.findById(id).get();
+        return facultyRepository.findFacultyById(id);
     }
-    public Faculty updateFaculty(Faculty faculty) {
-        return facultyRepository.save(faculty);
+
+    public Faculty updateFaculty(long id, Faculty faculty) {
+        Faculty updatedFaculty = facultyRepository.findFacultyById(id);
+        if (updatedFaculty == null) {
+            return null;
+        }
+        updatedFaculty.setName(faculty.getName());
+        updatedFaculty.setColor(faculty.getColor());
+        return facultyRepository.save(updatedFaculty);
     }
+
     public void deleteFaculty(Long id) {
         facultyRepository.deleteById(id);
     }
+
     public Faculty findByName(String name) {
         return facultyRepository.findFacultyByNameIgnoreCase(name);
     }
+
     public Faculty findByColor(String color) {
         return facultyRepository.findFacultyByColorIgnoreCase(color);
     }
+
     public Collection<Student> getStudentsOfFaculty(long id) {
         Faculty faculty = facultyRepository.findFacultyById(id);
         return (faculty != null) ? faculty.getStudent() : Collections.emptyList();
     }
+
     public Collection<Faculty> filterColor(String color) {
         return facultyRepository.findAll()
                 .stream()
